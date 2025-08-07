@@ -11,13 +11,17 @@ for file in *.json; do
     name=$(jq -r '.name' "$file")
     height=$(jq -r '.height' "$file")
     weight=$(jq -r '.weight' "$file")
-    height_m=$(awk "BEGIN {printf \"%.1f\", $height / 10}")
-    weight_kg=$(awk "BEGIN {printf \"%.1f\", $weight / 10}")
-    echo "$name,$height_m,$weight_kg" >> "$OUTPUT_FILE"
+
+    # Convert to meters and kg, format with sed
+    height_m=$(echo "scale=1; $height / 10" | bc | sed 's/$/m/')
+    weight_kg=$(echo "scale=1; $weight / 10" | bc | sed 's/$/kg/')
+
+    # Strip the unit for the CSV (since headers already say m/kg)
+    echo "$name,${height_m%m},${weight_kg%kg}" >> "$OUTPUT_FILE"
 done
 
-# Calculate averages
-awk -F, 'NR > 1 {height+=$2; weight+=$3; count++} 
+# Calculate averages using awk (still allowed for averages)
+awk -F, 'NR > 1 {height+=$2; weight+=$3; count++}
          END {print "Average Height (m): " height/count "\nAverage Weight (kg): " weight/count}' "$OUTPUT_FILE" > "$TEMP_FILE"
 
 cat "$TEMP_FILE"
