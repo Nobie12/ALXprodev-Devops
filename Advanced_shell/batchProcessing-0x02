@@ -1,0 +1,23 @@
+#!/bin/bash
+
+POKEMON_LIST=(bulbasaur ivysaur venusaur charmander charmeleon)
+ERROR_FILE="errors.txt"
+
+for name in "${POKEMON_LIST[@]}"; do
+    API_URL="https://pokeapi.co/api/v2/pokemon/$name"
+    OUTPUT_FILE="${name}.json"
+    ATTEMPT=1
+    SUCCESS=0
+    while [ $ATTEMPT -le 3 ]; do
+        curl -s -f "$API_URL" -o "$OUTPUT_FILE"
+        if [ $? -eq 0 ]; then
+            SUCCESS=1
+            break
+        fi
+        ATTEMPT=$((ATTEMPT+1))
+        sleep 1
+    done
+    if [ $SUCCESS -ne 1 ]; then
+        echo "Failed to fetch data for $name after 3 attempts." >> "$ERROR_FILE"
+    fi
+done
