@@ -1,0 +1,14 @@
+#!/bin/bash
+
+request_pokemon() {
+    local pikachu=$1
+
+    curl -s -o data.json "https://pokeapi.co/api/v2/pokemon/$pikachu"
+    if [ $? -ne 0 ]; then
+        echo "Failed to fetch data for $pikachu at $(date)" >> errors.txt
+    else
+        echo "Data for $pikachu saved successfully."
+    fi
+}
+
+request_pokemon "$1"
