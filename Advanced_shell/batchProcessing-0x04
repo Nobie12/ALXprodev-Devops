@@ -1,0 +1,47 @@
+#!/bin/bash
+
+# List of Pokémon names
+POKEMON_LIST=("pikachu" "bulbasaur" "charmander" "squirtle" "jigglypuff")
+
+# API URL
+API_URL="https://pokeapi.co/api/v2/pokemon/"
+
+# Function to fetch data for a Pokémon
+fetch_pokemon_data() {
+    local pokemon=$1
+    local filename="${pokemon}_data.json"
+
+    echo "Fetching data for $pokemon..."
+    curl -s "${API_URL}${pokemon}" -o "$filename" && echo "Data for $pokemon saved to $filename"
+}
+
+# Fetch data for each Pokémon in parallel and track jobs
+for pokemon in "${POKEMON_LIST[@]}"; do
+    fetch_pokemon_data "$pokemon" &    # Run the fetch function in background
+    job_id=$!                          # Capture the background job's PID
+    echo "Started job for $pokemon with PID $job_id"
+done
+
+# Wait for all background jobs to finish
+wait
+
+# Display all completed jobs
+echo "All Pokémon data fetched successfully!"
+
+# List all background jobs
+jobs -l
+
+# Optionally, you can kill specific jobs if needed.
+# You can modify this part to kill jobs manually (replace PID with actual job IDs)
+echo "Do you want to kill any jobs? (y/n)"
+read response
+if [[ "$response" == "y" ]]; then
+    echo "Enter the job number (e.g., 1 for first job):"
+    read job_number
+    job_pid=$(jobs -p | sed -n "${job_number}p")
+
+    # Kill the selected job
+    kill "$job_pid" && echo "Job $job_number with PID $job_pid has been killed."
+else
+    echo "No jobs killed."
+fi
